@@ -11,7 +11,7 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-func Crawl() {
+func Crawl(siteurl string) {
 	// Create a new context
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
@@ -36,7 +36,7 @@ func Crawl() {
 
 	// Navigate to the URL
 	if err := chromedp.Run(ctx,
-		chromedp.Navigate("https://www.naukri.com/java-developer-java-jobs-in-chennai"),
+		chromedp.Navigate(siteurl),
 		chromedp.Sleep(time.Duration(rand.Intn(5)+3)*time.Second), // Simulate human-like behavior
 	); err != nil {
 		log.Fatal(err)

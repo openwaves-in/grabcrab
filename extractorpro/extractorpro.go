@@ -1,19 +1,25 @@
 package extractorpro
 
 import (
+	"encoding/csv"
 	"fmt"
-	"golang.org/x/net/html"
 	"log"
 	"os"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type Job struct {
-	Title    string
-	Company  string
-	Ratings  string
-	Reviews  string
-	URL      string
+	Title       string
+	Company     string
+	Experience  string
+	Salary      string
+	Location    string
+	Description string
+	Tags        []string
+	Posted      string
+	URL         string
 }
 
 func Extractor() {
@@ -34,15 +40,12 @@ func Extractor() {
 	var jobs []Job
 	extractJobs(doc, &jobs)
 
-	// Display extracted job data
-	for _, job := range jobs {
-		fmt.Println("Title:", job.Title)
-		fmt.Println("Company:", job.Company)
-		fmt.Println("Ratings:", job.Ratings)
-		fmt.Println("Reviews:", job.Reviews)
-		fmt.Println("URL:", job.URL)
-		fmt.Println()
+	// Save extracted job data to CSV
+	err = saveToCSV(jobs, "jobs.csv")
+	if err != nil {
+		log.Fatal(err)
 	}
+	fmt.Println("Data saved to jobs.csv successfully.")
 }
 
 func extractJobs(n *html.Node, jobs *[]Job) {
@@ -68,10 +71,69 @@ func extractJobs(n *html.Node, jobs *[]Job) {
 										job.Company = strings.TrimSpace(a.FirstChild.Data)
 									}
 								}
-							} else if span.Type == html.ElementNode && span.Data == "a" && strings.Contains(getAttributeValue(span, "class"), "rating") {
-								job.Ratings = strings.TrimSpace(span.FirstChild.NextSibling.Data)
-							} else if span.Type == html.ElementNode && span.Data == "a" && strings.Contains(getAttributeValue(span, "class"), "review") {
-								job.Reviews = strings.TrimSpace(span.FirstChild.Data)
+							}
+						}
+					} else if c.Type == html.ElementNode && c.Data == "div" && strings.Contains(getAttributeValue(c, "class"), "row3") {
+						for child := c.FirstChild; child != nil; child = child.NextSibling {
+							if child.Type == html.ElementNode && strings.Contains(getAttributeValue(child, "class"), "job-details") {
+								for details := child.FirstChild; details != nil; details = details.NextSibling {
+									if details.Type == html.ElementNode && strings.Contains(getAttributeValue(details, "class"), "exp-wrap") {
+										for span := details.FirstChild; span != nil; span = span.NextSibling {
+											if span.Type == html.ElementNode && strings.Contains(getAttributeValue(span, "class"), "ni-job-tuple-icon ni-job-tuple-icon-srp-experience exp") {
+												for span2 := span.FirstChild; span2 != nil; span2 = span2.NextSibling {
+													if span2.Type == html.ElementNode && strings.Contains(getAttributeValue(span2, "class"), "expwdth") {
+														job.Experience = strings.TrimSpace(span2.FirstChild.Data)
+													}
+												}
+											}
+										}
+									}
+									if details.Type == html.ElementNode && strings.Contains(getAttributeValue(details, "class"), "sal-wrap ver-line") {
+										for span := details.FirstChild; span != nil; span = span.NextSibling {
+											if span.Type == html.ElementNode && strings.Contains(getAttributeValue(span, "class"), "ni-job-tuple-icon ni-job-tuple-icon-srp-rupee sal") {
+												for span2 := span.FirstChild; span2 != nil; span2 = span2.NextSibling {
+													if span2.Type == html.ElementNode && span2.Data == "span" {
+														// Check if the 'title' attribute is present
+														if titleAttr := getAttributeValue(span2, "title"); titleAttr != "" {
+															job.Salary = strings.TrimSpace(titleAttr)
+															break // exit the loop after extracting salary
+														}
+													}
+												}
+											}
+										}
+									}
+												if details.Type == html.ElementNode && strings.Contains(getAttributeValue(details, "class"), "loc-wrap ver-line") {
+										for span := details.FirstChild; span != nil; span = span.NextSibling {
+											if span.Type == html.ElementNode && strings.Contains(getAttributeValue(span, "class"), "ni-job-tuple-icon ni-job-tuple-icon-srp-location loc") {
+												for span2 := span.FirstChild; span2 != nil; span2 = span2.NextSibling {
+													if span2.Type == html.ElementNode && strings.Contains(getAttributeValue(span2, "class"), "locWdth") {
+														job.Location = strings.TrimSpace(span2.FirstChild.Data)
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+					} else if c.Type == html.ElementNode && c.Data == "div" && strings.Contains(getAttributeValue(c, "class"), "row4") {
+						job.Description = strings.TrimSpace(c.FirstChild.Data)
+					} else if c.Type == html.ElementNode && c.Data == "div" && strings.Contains(getAttributeValue(c, "class"), "row5") {
+						for ul := c.FirstChild; ul != nil; ul = ul.NextSibling {
+							if ul.Type == html.ElementNode && ul.Data == "ul" && strings.Contains(getAttributeValue(ul, "class"), "tags-gt") {
+								for li := ul.FirstChild; li != nil; li = li.NextSibling {
+									if li.Type == html.ElementNode && li.Data == "li" && strings.Contains(getAttributeValue(li, "class"), "tag-li") {
+										job.Tags = append(job.Tags, strings.TrimSpace(li.FirstChild.Data))
+									}
+								}
+							}
+						}
+					} else if c.Type == html.ElementNode && c.Data == "div" && strings.Contains(getAttributeValue(c, "class"), "row6") {
+						for span := c.FirstChild; span != nil; span = span.NextSibling {
+							if span.Type == html.ElementNode && span.Data == "span" && strings.Contains(getAttributeValue(span, "class"), "job-post-day") {
+								job.Posted = strings.TrimSpace(span.FirstChild.Data)
 							}
 						}
 					}
@@ -96,4 +158,31 @@ func getAttributeValue(n *html.Node, key string) string {
 		}
 	}
 	return ""
+}
+
+func saveToCSV(jobs []Job, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write header
+	header := []string{"Title", "Company", "Experience", "Salary", "Location", "Description", "Tags", "Posted", "URL"}
+	if err := writer.Write(header); err != nil {
+		return err
+	}
+
+	// Write data rows
+	for _, job := range jobs {
+		row := []string{job.Title, job.Company, job.Experience, job.Salary, job.Location, job.Description, strings.Join(job.Tags, ", "), job.Posted, job.URL}
+		if err := writer.Write(row); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
