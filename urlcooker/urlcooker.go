@@ -1,0 +1,5 @@
+package urlcooker
+
+func Urlcook() {
+	
+}

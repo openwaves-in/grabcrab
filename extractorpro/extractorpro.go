@@ -1,26 +1,16 @@
 package extractorpro
 
 import (
-	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/openwaves-in/grabcrab/csvsaver"
 	"golang.org/x/net/html"
 )
 
-type Job struct {
-	Title       string
-	Company     string
-	Experience  string
-	Salary      string
-	Location    string
-	Description string
-	Tags        []string
-	Posted      string
-	URL         string
-}
+
 
 func Extractor() {
 	// Open the local HTML file
@@ -37,22 +27,22 @@ func Extractor() {
 	}
 
 	// Extract job data
-	var jobs []Job
+	var jobs []csvsaver.Job
 	extractJobs(doc, &jobs)
 
 	// Save extracted job data to CSV
-	err = saveToCSV(jobs, "jobs.csv")
+	err = csvsaver.SaveToCSV(jobs, "jobs.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Data saved to jobs.csv successfully.")
 }
 
-func extractJobs(n *html.Node, jobs *[]Job) {
+func extractJobs(n *html.Node, jobs *[]csvsaver.Job) {
 	if n.Type == html.ElementNode && n.Data == "div" {
 		for _, attr := range n.Attr {
 			if attr.Key == "class" && strings.Contains(attr.Val, "cust-job-tuple") {
-				var job Job
+				var job csvsaver.Job
 
 				// Extract data fields
 				for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -103,7 +93,7 @@ func extractJobs(n *html.Node, jobs *[]Job) {
 											}
 										}
 									}
-												if details.Type == html.ElementNode && strings.Contains(getAttributeValue(details, "class"), "loc-wrap ver-line") {
+									if details.Type == html.ElementNode && strings.Contains(getAttributeValue(details, "class"), "loc-wrap ver-line") {
 										for span := details.FirstChild; span != nil; span = span.NextSibling {
 											if span.Type == html.ElementNode && strings.Contains(getAttributeValue(span, "class"), "ni-job-tuple-icon ni-job-tuple-icon-srp-location loc") {
 												for span2 := span.FirstChild; span2 != nil; span2 = span2.NextSibling {
@@ -158,31 +148,4 @@ func getAttributeValue(n *html.Node, key string) string {
 		}
 	}
 	return ""
-}
-
-func saveToCSV(jobs []Job, filename string) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-
-	// Write header
-	header := []string{"Title", "Company", "Experience", "Salary", "Location", "Description", "Tags", "Posted", "URL"}
-	if err := writer.Write(header); err != nil {
-		return err
-	}
-
-	// Write data rows
-	for _, job := range jobs {
-		row := []string{job.Title, job.Company, job.Experience, job.Salary, job.Location, job.Description, strings.Join(job.Tags, ", "), job.Posted, job.URL}
-		if err := writer.Write(row); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
