@@ -2,10 +2,11 @@ package crawler
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
-	"net/http"
+	"os"
 	"time"
+
+	"github.com/gocolly/colly/v2"
 )
 
 var userAgents = []string{
@@ -21,49 +22,31 @@ func getRandomUserAgent() string {
 }
 
 func Crawl(url string) {
+	// URL to crawl
 	
-	// Create HTTP client with timeout
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
 
-	// Create a new request
-	req, err := http.NewRequest("GET", url, nil)
+	// Create a new collector
+	c := colly.NewCollector()
+
+	// Randomize user agent for each request
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("User-Agent", getRandomUserAgent())
+	})
+
+	// On HTML response, save HTML content to a file
+	c.OnResponse(func(r *colly.Response) {
+		err := os.WriteFile("page.html", r.Body, 0644)
+		if err != nil {
+			fmt.Println("Error saving HTML content to file:", err)
+			return
+		}
+		fmt.Println("Page saved successfully as page.html")
+	})
+
+	// Start scraping
+	err := c.Visit(url)
 	if err != nil {
-		fmt.Println("Error creating request:", err)
+		fmt.Println("Error visiting URL:", err)
 		return
 	}
-
-	// Set a random user agent
-	req.Header.Set("User-Agent", getRandomUserAgent())
-
-	// Perform the request
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error performing request:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Check if response status is OK
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Error: Unexpected response status code:", resp.StatusCode)
-		return
-	}
-
-	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return
-	}
-
-	// Save HTML content to a file
-	err = ioutil.WriteFile("page.html", body, 0644)
-	if err != nil {
-		fmt.Println("Error saving HTML content to file:", err)
-		return
-	}
-
-	fmt.Println("Page saved successfully as page.html")
 }
