@@ -1,7 +1,7 @@
 package extractorpro
 
 import (
-	"fmt"
+	//"fmt"
 	"log"
 	"os"
 	"strings"
@@ -35,7 +35,7 @@ func Extractor() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Data saved to jobs.csv successfully.")
+	//fmt.Println("Data saved to jobs.csv successfully.")
 }
 
 func extractJobs(n *html.Node, jobs *[]csvsaver.Job) {

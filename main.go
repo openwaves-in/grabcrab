@@ -18,8 +18,14 @@ func main() {
 	myWindow := myApp.NewWindow("GRAB CRAB")
 	myWindow.Resize(fyne.NewSize(800, 600))
 
+	// Load and set the window icon
+	iconResource, err := fyne.LoadResourceFromPath("icon.png")
+	if err == nil {
+		myWindow.SetIcon(iconResource)
+	}
+
 	// Create widgets for location selection, skills input, and search button
-	locationOptions := []string{"chennai", "hyderabad", "bangalore", "kochin"}
+	locationOptions := []string{"chennai", "hyderabad", "bangalore", "kochi"}
 	locationSelect := widget.NewSelect(locationOptions, nil)
 	skillsEntry := widget.NewEntry()
 	searchButton := widget.NewButton("Search", func() {
@@ -38,9 +44,9 @@ func main() {
 
 		// Fetch data from URL
 		csvFileLocation := urlcooker.Urlcook(skills, location)
-		
-		// Show completion message and option to open the CSV file location
-		completionMessage := fmt.Sprintf("Process completed. CSV file generated at:\n%s", csvFileLocation)
+
+		// Show completion message with instruction to close the application
+		completionMessage := fmt.Sprintf("Process completed. CSV file generated at:\n%s\n\nPress 'Ctrl+C' to close the application.", csvFileLocation)
 		dialog := widget.NewModalPopUp(container.NewVBox(widget.NewLabel(completionMessage)), myWindow.Canvas())
 		dialog.Show()
 	})

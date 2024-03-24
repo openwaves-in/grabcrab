@@ -2,7 +2,7 @@ package crawlerpro
 
 import (
 	"context"
-	"fmt"
+	//"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -53,7 +53,7 @@ func Crawl(siteurl string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Page saved successfully")
+//	fmt.Println("Page saved successfully")
 
 }
 

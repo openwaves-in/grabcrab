@@ -28,10 +28,10 @@ func generateLinks(baseLink string, count int) []string {
 func Urlcook(skilss string, location string) string {
 	baseLink := "https://www.naukri.com/" + skilss + "-jobs-in-" + location
 	addLink := "?jobAge=7&experience=0"
-	links := generateLinks(baseLink, 5)
+	links := generateLinks(baseLink, 6)
 	for _, link := range links {
 		url := link + addLink
-		fmt.Println(url)
+		//fmt.Println(url)
 		crawlerpro.Crawl(url)
 		extractorpro.Extractor()
 
