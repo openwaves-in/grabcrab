@@ -54,6 +54,7 @@ func Crawl(siteurl string) {
 	}
 
 	fmt.Println("Page saved successfully")
+
 }
 
 // RandomUserAgent generates a random user-agent string

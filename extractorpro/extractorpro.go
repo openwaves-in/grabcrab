@@ -108,9 +108,7 @@ func extractJobs(n *html.Node, jobs *[]csvsaver.Job) {
 							}
 						}
 
-					} else if c.Type == html.ElementNode && c.Data == "div" && strings.Contains(getAttributeValue(c, "class"), "row4") {
-						job.Description = strings.TrimSpace(c.FirstChild.Data)
-					} else if c.Type == html.ElementNode && c.Data == "div" && strings.Contains(getAttributeValue(c, "class"), "row5") {
+					}else if c.Type == html.ElementNode && c.Data == "div" && strings.Contains(getAttributeValue(c, "class"), "row5") {
 						for ul := c.FirstChild; ul != nil; ul = ul.NextSibling {
 							if ul.Type == html.ElementNode && ul.Data == "ul" && strings.Contains(getAttributeValue(ul, "class"), "tags-gt") {
 								for li := ul.FirstChild; li != nil; li = li.NextSibling {
