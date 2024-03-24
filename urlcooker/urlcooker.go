@@ -26,7 +26,7 @@ func generateLinks(baseLink string, count int) []string {
 
 func Urlcook(skilss string, location string) {
 	baseLink := "https://www.naukri.com/" + skilss + "-jobs-in-" + location
-	addLink := "?experience=0"
+	addLink := "?jobAge=7&experience=0"
 	links := generateLinks(baseLink, 10)
 	for _, link := range links {
 		url := link + addLink
