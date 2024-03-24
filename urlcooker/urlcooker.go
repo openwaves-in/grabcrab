@@ -8,6 +8,7 @@ import (
 
 	"github.com/openwaves-in/grabcrab/crawlerpro"
 	"github.com/openwaves-in/grabcrab/extractorpro"
+	"github.com/openwaves-in/grabcrab/pathfinder"
 )
 
 func generateLinks(baseLink string, count int) []string {
@@ -24,10 +25,10 @@ func generateLinks(baseLink string, count int) []string {
 
 //java-fresher-jobs-in-chennai?k=java%20fresher&l=chennai&experience=0
 
-func Urlcook(skilss string, location string) {
+func Urlcook(skilss string, location string) string {
 	baseLink := "https://www.naukri.com/" + skilss + "-jobs-in-" + location
 	addLink := "?jobAge=7&experience=0"
-	links := generateLinks(baseLink, 10)
+	links := generateLinks(baseLink, 5)
 	for _, link := range links {
 		url := link + addLink
 		fmt.Println(url)
@@ -35,4 +36,5 @@ func Urlcook(skilss string, location string) {
 		extractorpro.Extractor()
 
 	}
+	return pathfinder.Fpath() 
 }
