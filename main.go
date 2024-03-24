@@ -46,7 +46,7 @@ func main() {
 		csvFileLocation := urlcooker.Urlcook(skills, location)
 
 		// Show completion message with instruction to close the application
-		completionMessage := fmt.Sprintf("Process completed. CSV file generated at:\n%s\n\nPress 'Ctrl+C' to close the application.", csvFileLocation)
+		completionMessage := fmt.Sprintf("Process completed. CSV file generated at:\n%s\n", csvFileLocation)
 		dialog := widget.NewModalPopUp(container.NewVBox(widget.NewLabel(completionMessage)), myWindow.Canvas())
 		dialog.Show()
 	})
